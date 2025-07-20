@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Heikin Ashi Trading System</title>
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1e1e2e;
+            color: #e0e0e0;
+        }
+        .chart-container {
+            height: 600px;
+            width: 100%;
+            background-color: #28293d;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+        .control-panel {
+            background-color: #28293d;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .alert {
+            transition: all 0.3s ease;
+        }
+        .alert.buy {
+            border-left: 4px solid #00b894;
+            background-color: rgba(0, 184, 148, 0.1);
+        }
+        .alert.sell {
+            border-left: 4px solid #d63031;
+            background-color: rgba(214, 48, 49, 0.1);
+        }
+        .alert.system {
+            border-left: 4px solid #6c5ce7;
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+        input, select {
+            background-color: #2d2d44;
+            border: 1px solid #3d3d5c;
+            color: #e0e0e0;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #6c5ce7;
+        }
+        .trade-history {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .trade-profit {
+            color: #00b894;
+        }
+        .trade-loss {
+            color: #d63031;
+        }
+        .strategy-guide {
+            background-color: #28293d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .strategy-guide h3 {
+            color: #6c5ce7;
+            margin-bottom: 10px;
+        }
+        .strategy-guide ul {
+            list-style-type: disc;
+            padding-left: 20px;
+        }
+        .customization-section {
+            background-color: #28293d;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .customization-section h3 {
+            color: #6c5ce7;
+            margin-bottom: 10px;
+        }
+        .ma-style-control {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .ma-style-control label {
+            width: 100px;
+        }
+        .color-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-left: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <!-- Header -->
+        <header class="bg-gray-800 p-6 rounded-lg mb-6 shadow-lg">
+            <h1 class="text-3xl font-bold text-purple-400 mb-2">
+                <i class="fas fa-chart-line mr-3"></i>Enhanced Heikin Ashi Trading System
+            </h1>
+            <p class="text-gray-300">Professional 1-minute Heikin Ashi strategy with EMA & ATR filters</p>
+            <div class="mt-4">
+                <span id="connectionStatus" class="px-3 py-1 rounded-full text-sm bg-red-600 text-white">
+                    <i class="fas fa-circle mr-1"></i>Disconnected
+                </span>
+                <span id="lastUpdate" class="ml-4 text-gray-400 text-sm">
+                    <i class="fas fa-clock mr-1"></i>No data yet
+                </span>
+                <span id="accountBalance" class="ml-4 text-green-400 text-sm">
+                    <i class="fas fa-wallet mr-1"></i>Balance: $10,000.00
+                </span>
+            </div>
+        </header>
+
+        <!-- Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Control Panel -->
+            <div class="control-panel bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold text-purple-400 mb-4">
+                    <i class="fas fa-cog mr-2"></i>Trading Settings
+                </h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-gray-300 font-medium mb-2">
+                            <i class="fas fa-percentage mr-1"></i>Doji Body Ratio
+                        </label>
+                        <input type="number" id="dojiRatio" value="0.08" step="0.01" min="0.01" max="0.2" class="w-full p-2 rounded">
+                        <p class="text-xs text-gray-400 mt-1">Max body size relative to candle range (0.01-0.2)</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 font-medium mb-2">
+                            <i class="fas fa-chart-bar mr-1"></i>Volume MA Period
+                        </label>
+                        <input type="number" id="volumeMAPeriod" value="20" min="5" max="50" class="w-full p-2 rounded">
+                        <p class="text-xs text-gray-400 mt-1">Periods for volume moving average (5-50)</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 font-medium mb-2">
+                            <i class="fas fa-dollar-sign mr-1"></i>Trade Size (%)
+                        </label>
+                        <input type="number" id="tradeSize" value="2" min="1" max="10" class="w-full p-2 rounded">
+                        <p class="text-xs text-gray-400 mt-1">Risk per trade (1%-10% of balance)</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-gray-300 font-medium mb-2">
+                            <i class="fas fa-bullseye mr-1"></i>ATR Multiplier
+                        </label>
+                        <input type="number" id="atrMultiplier" value="1.5" step="0.1" min="1" max="3" class="w-full p-2 rounded">
+                        <p class="text-xs text-gray-400 mt-1">Stop loss/take profit distance (1-3x ATR)</p>
+                    </div>
+                    
+                    <button id="applySettings" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition">
+                        <i class="fas fa-check mr-2"></i>Apply Settings
+                    </button>
+                </div>
+
+                <!-- Moving Average Customization -->
+                <div class="customization-section mt-6">
+                    <h3 class="text-lg font-bold text-purple-400 mb-3">
+                        <i class="fas fa-sliders-h mr-2"></i>MA Customization
+                    </h3>
+                    
+                    <div class="ma-style-control">
+                        <label class="text-gray-300">EMA 50 Color:</label>
+                        <input type="color" id="ema50Color" value="#f1c40f" class="ml-2">
+                        <span class="color-preview" id="ema50Preview" style="background-color: #f1c40f;"></span>
+                    </div>
+                    
+                    <div class="ma-style-control">
+                        <label class="text-gray-300">EMA 50 Width:</label>
+                        <input type="range" id="ema50Width" min="1" max="5" value="1" class="ml-2 w-24">
+                    </div>
+                    
+                    <div class="ma-style-control">
+                        <label class="text-gray-300">EMA 100 Color:</label>
+                        <input type="color" id="ema100Color" value="#e67e22" class="ml-2">
+                        <span class="color-preview" id="ema100Preview" style="background-color: #e67e22;"></span>
+                    </div>
+                    
+                    <div class="ma-style-control">
+                        <label class="text-gray-300">EMA 100 Width:</label>
+                        <input type="range" id="ema100Width" min="1" max="5" value="2" class="ml-2 w-24">
+                    </div>
+                    
+                    <button id="applyMAstyles" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition mt-2">
+                        <i class="fas fa-paint-brush mr-2"></i>Apply MA Styles
+                    </button>
+                </div>
+
+                <!-- Live Statistics -->
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold text-purple-400 mb-3">
+                        <i class="fas fa-chart-area mr-2"></i>Live Stats
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Current Price:</span>
+                            <span id="currentPrice" class="text-green-400 font-mono">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">EMA 50:</span>
+                            <span id="ema50" class="text-yellow-400 font-mono">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">EMA 100:</span>
+                            <span id="ema100" class="text-orange-400 font-mono">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">ATR (14):</span>
+                            <span id="atrValue" class="text-blue-400 font-mono">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Position:</span>
+                            <span id="currentPosition" class="text-blue-400 font-mono">None</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Today's P/L:</span>
+                            <span id="dailyPL" class="text-green-400 font-mono">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Signals -->
+                <div class="mt-6">
+                    <h3 class="text-lg font-bold text-purple-400 mb-3">
+                        <i class="fas fa-bell mr-2"></i>Active Signals
+                    </h3>
+                    <div id="signals" class="space-y-2 max-h-40 overflow-y-auto">
+                        <p class="text-gray-400 text-sm">Waiting for signals...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Container -->
+            <div class="lg:col-span-3">
+                <div class="chart-container shadow-lg">
+                    <div id="chart"></div>
+                </div>
+                
+                <!-- Strategy Guide -->
+                <div class="strategy-guide mt-6">
+                    <h3 class="text-xl font-bold text-purple-400 mb-3">
+                        <i class="fas fa-book mr-2"></i>Strategy Guide
+                    </h3>
+                    
+                    <h4 class="font-bold text-purple-300 mt-4">How This Strategy Works:</h4>
+                    <ol class="list-decimal pl-5 mt-2 space-y-2">
+                        <li><strong>Trend Identification</strong>: We only trade when EMA 50 is above EMA 100 (bullish) or below (bearish)</li>
+                        <li><strong>Entry Signal</strong>: Look for Doji candles (small body) that form after a pullback to the EMA 100</li>
+                        <li><strong>Volume Confirmation</strong>: Volume must be 1.5x above the 20-period moving average</li>
+                        <li><strong>Market Structure</strong>: Requires higher lows in uptrends or lower highs in downtrends</li>
+                        <li><strong>Risk Management</strong>: Stops are placed at 1.5x ATR from entry, with two take profit levels</li>
+                    </ol>
+                    
+                    <h4 class="font-bold text-purple-300 mt-4">Why It's Profitable:</h4>
+                    <ul class="list-disc pl-5 mt-2 space-y-2">
+                        <li>Heikin Ashi candles filter market noise, showing cleaner trends</li>
+                        <li>EMA crossover confirms the overall market direction</li>
+                        <li>Doji patterns identify potential reversal points with precision</li>
+                        <li>Volume confirmation ensures institutional participation</li>
+                        <li>ATR-based stops adapt to current market volatility</li>
+                    </ul>
+                    
+                    <h4 class="font-bold text-purple-300 mt-4">Parameter Optimization Guide:</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <h5 class="font-bold text-blue-300">Doji Body Ratio (0.01-0.2)</h5>
+                            <p class="text-sm">Lower values = stricter Doji requirements. Try 0.05-0.1 for more precise entries.</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <h5 class="font-bold text-blue-300">Volume MA Period (5-50)</h5>
+                            <p class="text-sm">Higher values = smoother volume average. 20 works well for 1-minute charts.</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <h5 class="font-bold text-blue-300">Trade Size (1%-10%)</h5>
+                            <p class="text-sm">Risk per trade. Conservative traders use 1-2%, aggressive 3-5%.</p>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded-lg">
+                            <h5 class="font-bold text-blue-300">ATR Multiplier (1-3)</h5>
+                            <p class="text-sm">Higher values = wider stops (fewer wins but bigger profits). 1.5-2 is optimal.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="mt-6 bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-purple-400">
+                    <i class="fas fa-history mr-2"></i>Trade History
+                </h2>
+                <button id="clearHistory" class="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded">
+                    <i class="fas fa-trash mr-1"></i>Clear History
+                </button>
+            </div>
+            <div id="tradeHistory" class="trade-history space-y-2">
+                <p class="text-gray-400">No trades yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let chart;
+        let candleSeries;
+        let volumeSeries;
+        let ema50Series;
+        let ema100Series;
+        let volumeMASeries;
+        let socket;
+        let currentTimeframe = '1m';
+        let candles = [];
+        let heikinAshiCandles = [];
+        let volumeData = [];
+        let ema50Data = [];
+        let ema100Data = [];
+        let atrData = [];
+        let volumeMAData = [];
+        let signalCounter = 0;
+        let lastPrice = 0;
+        let accountBalance = 10000;
+        let dailyPL = 0;
+        let currentPosition = null;
+        let tradeHistory = [];
+        let markers = [];
+
+        // Initialize the application
+        function initializeApp() {
+            try {
+                // Load trade history from local storage
+                loadTradeHistory();
+                updateAccountDisplay();
+                
+                setupChart();
+                loadInitialData();
+                setupEventListeners();
+                addAlert('Enhanced system initialized successfully', 'system');
+            } catch (error) {
+                console.error('Initialization error:', error);
+                addAlert('Failed to initialize application', 'system');
+            }
+        }
+
+        // Setup chart
+        function setupChart() {
+            const chartContainer = document.getElementById('chart');
+            if (!chartContainer) {
+                throw new Error('Chart container not found');
+            }
+
+            chart = LightweightCharts.createChart(chartContainer, {
+                layout: {
+                    backgroundColor: '#28293d',
+                    textColor: '#e0e0e0',
+                    fontSize: 12,
+                },
+                grid: {
+                    vertLines: {
+                        color: '#3d3d5c',
+                        style: 1,
+                    },
+                    horzLines: {
+                        color: '#3d3d5c',
+                        style: 1,
+                    },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                },
+                rightPriceScale: {
+                    borderColor: '#3d3d5c',
+                    scaleMargins: {
+                        top: 0.1,
+                        bottom: 0.4,
+                    },
+                },
+                timeScale: {
+                    borderColor: '#3d3d5c',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+                watermark: {
+                    color: '#6c5ce7',
+                    visible: true,
+                    text: 'BTC/USDT (Enhanced Heikin Ashi)',
+                    fontSize: 24,
+                    horzAlign: 'center',
+                    vertAlign: 'center',
+                },
+            });
+
+            candleSeries = chart.addCandlestickSeries({
+                upColor: '#00b894',
+                downColor: '#d63031',
+                borderDownColor: '#d63031',
+                borderUpColor: '#00b894',
+                wickDownColor: '#d63031',
+                wickUpColor: '#00b894',
+                priceScaleId: 'right',
+            });
+
+            ema50Series = chart.addLineSeries({
+                color: '#f1c40f', // Yellow
+                lineWidth: 1,
+                priceScaleId: 'right',
+            });
+
+            ema100Series = chart.addLineSeries({
+                color: '#e67e22', // Orange
+                lineWidth: 2,
+                priceScaleId: 'right',
+            });
+
+            volumeSeries = chart.addHistogramSeries({
+                color: '#6c5ce7',
+                priceFormat: {
+                    type: 'volume',
+                },
+                priceScaleId: '',
+                scaleMargins: {
+                    top: 0.7,
+                    bottom: 0,
+                },
+            });
+
+            volumeMASeries = chart.addLineSeries({
+                color: '#3498db',
+                lineWidth: 1,
+                priceScaleId: '',
+                scaleMargins: {
+                    top: 0.7,
+                    bottom: 0,
+                },
+            });
+
+            // Handle chart resize
+            const resizeObserver = new ResizeObserver(entries => {
+                if (chart) {
+                    chart.applyOptions({
+                        width: entries[0].contentRect.width,
+                        height: entries[0].contentRect.height,
+                    });
+                }
+            });
+            resizeObserver.observe(chartContainer);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('applySettings').addEventListener('click', () => {
+                addAlert('Trading settings applied successfully', 'system');
+            });
+            
+            document.getElementById('applyMAstyles').addEventListener('click', () => {
+                applyMAstyles();
+                addAlert('MA styles updated successfully', 'system');
+            });
+            
+            document.getElementById('clearHistory').addEventListener('click', () => {
+                if (confirm('Are you sure you want to clear all trade history?')) {
+                    localStorage.removeItem('heikinAshiTradeHistory');
+                    localStorage.removeItem('heikinAshiAccountBalance');
+                    tradeHistory = [];
+                    accountBalance = 10000;
+                    dailyPL = 0;
+                    updateTradeHistoryDisplay();
+                    updateAccountDisplay();
+                    addAlert('Trade history cleared', 'system');
+                }
+            });
+            
+            // Update color previews when color inputs change
+            document.getElementById('ema50Color').addEventListener('input', function() {
+                document.getElementById('ema50Preview').style.backgroundColor = this.value;
+            });
+            
+            document.getElementById('ema100Color').addEventListener('input', function() {
+                document.getElementById('ema100Preview').style.backgroundColor = this.value;
+            });
+        }
+
+        // Apply MA style changes
+        function applyMAstyles() {
+            const ema50Color = document.getElementById('ema50Color').value;
+            const ema50Width = parseInt(document.getElementById('ema50Width').value);
+            const ema100Color = document.getElementById('ema100Color').value;
+            const ema100Width = parseInt(document.getElementById('ema100Width').value);
+            
+            ema50Series.applyOptions({
+                color: ema50Color,
+                lineWidth: ema50Width
+            });
+            
+            ema100Series.applyOptions({
+                color: ema100Color,
+                lineWidth: ema100Width
+            });
+        }
+
+        // Convert regular candles to Heikin Ashi candles
+        function convertToHeikinAshi(regularCandles) {
+            const haCandles = [];
+            
+            for (let i = 0; i < regularCandles.length; i++) {
+                const current = regularCandles[i];
+                const prevHa = haCandles[i - 1] || current;
+                
+                const haClose = (current.open + current.high + current.low + current.close) / 4;
+                const haOpen = (prevHa.open + prevHa.close) / 2;
+                const haHigh = Math.max(current.high, haOpen, haClose);
+                const haLow = Math.min(current.low, haOpen, haClose);
+                
+                haCandles.push({
+                    time: current.time,
+                    open: haOpen,
+                    high: haHigh,
+                    low: haLow,
+                    close: haClose,
+                    volume: current.volume,
+                    originalOpen: current.open,
+                    originalClose: current.close,
+                    originalHigh: current.high,
+                    originalLow: current.low
+                });
+            }
+            
+            return haCandles;
+        }
+
+        // Calculate EMA
+        function calculateEMA(data, period, key = 'close') {
+            const emaData = [];
+            let sum = 0;
+            const multiplier = 2 / (period + 1);
+            
+            for (let i = 0; i < data.length; i++) {
+                if (i < period) {
+                    sum += data[i][key];
+                    if (i === period - 1) {
+                        emaData.push({ time: data[i].time, value: sum / period });
+                    }
+                } else {
+                    const ema = (data[i][key] - emaData[i - period].value) * multiplier + emaData[i - period].value;
+                    emaData.push({ time: data[i].time, value: ema });
+                }
+            }
+            
+            return emaData;
+        }
+
+        // Calculate ATR (Average True Range)
+        function calculateATR(data, period = 14) {
+            const atrData = [];
+            let sumTR = 0;
+            
+            for (let i = 0; i < data.length; i++) {
+                if (i === 0) {
+                    atrData.push({ time: data[i].time, value: 0 });
+                    continue;
+                }
+                
+                const prevClose = data[i-1].close;
+                const trueRange = Math.max(
+                    data[i].high - data[i].low,
+                    Math.abs(data[i].high - prevClose),
+                    Math.abs(data[i].low - prevClose)
+                );
+                
+                if (i < period) {
+                    sumTR += trueRange;
+                    if (i === period - 1) {
+                        atrData.push({ time: data[i].time, value: sumTR / period });
+                    }
+                } else {
+                    const atr = ((atrData[i - period].value * (period - 1)) + trueRange) / period;
+                    atrData.push({ time: data[i].time, value: atr });
+                }
+            }
+            
+            return atrData;
+        }
+
+        // Calculate moving average
+        function calculateMA(data, period, key = 'value') {
+            const maData = [];
+            let sum = 0;
+            
+            for (let i = 0; i < data.length; i++) {
+                sum += data[i][key];
+                
+                if (i >= period) {
+                    sum -= data[i - period][key];
+                    maData.push({ time: data[i].time, value: sum / period });
+                } else if (i === period - 1) {
+                    maData.push({ time: data[i].time, value: sum / period });
+                }
+            }
+            
+            return maData;
+        }
+
+        // Load trade history from local storage
+        function loadTradeHistory() {
+            const savedHistory = localStorage.getItem('heikinAshiTradeHistory');
+            const savedBalance = localStorage.getItem('heikinAshiAccountBalance');
+            
+            if (savedHistory) {
+                tradeHistory = JSON.parse(savedHistory);
+                updateTradeHistoryDisplay();
+            }
+            
+            if (savedBalance) {
+                accountBalance = parseFloat(savedBalance);
+            }
+        }
+
+        // Save trade history to local storage
+        function saveTradeHistory() {
+            localStorage.setItem('heikinAshiTradeHistory', JSON.stringify(tradeHistory));
+            localStorage.setItem('heikinAshiAccountBalance', accountBalance.toString());
+        }
+
+        // Load initial historical data
+        async function loadInitialData() {
+            try {
+                updateConnectionStatus('connecting');
+                addAlert(`Loading ${currentTimeframe} data...`, 'system');
+                
+                const response = await fetch(`https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=${currentTimeframe}&limit=200`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!Array.isArray(data) || data.length === 0) {
+                    throw new Error('Invalid data received from API');
+                }
+                
+                // Process initial data
+                candles = data.map(k => ({
+                    time: Math.floor(k[0] / 1000),
+                    open: parseFloat(k[1]),
+                    high: parseFloat(k[2]),
+                    low: parseFloat(k[3]),
+                    close: parseFloat(k[4]),
+                    volume: parseFloat(k[5]),
+                }));
+                
+                // Convert to Heikin Ashi
+                heikinAshiCandles = convertToHeikinAshi(candles);
+                
+                // Calculate indicators
+                ema50Data = calculateEMA(heikinAshiCandles, 50);
+                ema100Data = calculateEMA(heikinAshiCandles, 100);
+                atrData = calculateATR(heikinAshiCandles, 14);
+                
+                volumeData = data.map(k => ({
+                    time: Math.floor(k[0] / 1000),
+                    value: parseFloat(k[5]),
+                    color: parseFloat(k[4]) >= parseFloat(k[1]) ? '#00b894' : '#d63031',
+                }));
+                
+                volumeMAData = calculateMA(volumeData, 20);
+                
+                // Set chart data
+                candleSeries.setData(heikinAshiCandles);
+                ema50Series.setData(ema50Data);
+                ema100Series.setData(ema100Data);
+                volumeSeries.setData(volumeData);
+                volumeMASeries.setData(volumeMAData);
+                
+                // Update UI with latest data
+                const latestCandle = candles[candles.length - 1];
+                updatePriceDisplay(latestCandle);
+                
+                // Connect WebSocket after successful data load
+                connectWebSocket();
+                
+                addAlert(`Loaded ${data.length} candles successfully`, 'system');
+                
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                addAlert(`Error loading data: ${error.message}`, 'system');
+                updateConnectionStatus('error');
+            }
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            if (socket) {
+                socket.close();
+            }
+
+            const wsUrl = `wss://stream.binance.com:9443/ws/btcusdt@kline_${currentTimeframe}`;
+            socket = new WebSocket(wsUrl);
+            
+            socket.onopen = () => {
+                console.log('WebSocket connected');
+                updateConnectionStatus('connected');
+                addAlert('Connected to Binance WebSocket', 'system');
+            };
+            
+            socket.onmessage = (event) => {
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message.k) {
+                        processKlineData(message.k);
+                    }
+                } catch (error) {
+                    console.error('Error processing WebSocket message:', error);
+                }
+            };
+            
+            socket.onclose = (event) => {
+                console.log('WebSocket disconnected', event.code, event.reason);
+                updateConnectionStatus('disconnected');
+                addAlert('Disconnected from Binance', 'system');
+                
+                // Attempt to reconnect after 5 seconds
+                setTimeout(() => {
+                    if (socket && socket.readyState === WebSocket.CLOSED) {
+                        connectWebSocket();
+                    }
+                }, 5000);
+            };
+            
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus('error');
+                addAlert('WebSocket connection error', 'system');
+            };
+        }
+
+        // Process kline data from WebSocket
+        function processKlineData(kline) {
+            try {
+                const newCandle = {
+                    time: Math.floor(kline.t / 1000),
+                    open: parseFloat(kline.o),
+                    high: parseFloat(kline.h),
+                    low: parseFloat(kline.l),
+                    close: parseFloat(kline.c),
+                    volume: parseFloat(kline.v),
+                };
+
+                // Update or add candle
+                if (candles.length > 0 && candles[candles.length - 1].time === newCandle.time) {
+                    candles[candles.length - 1] = newCandle;
+                } else {
+                    candles.push(newCandle);
+                    if (candles.length > 1000) {
+                        candles.shift();
+                    }
+                }
+
+                // Convert to Heikin Ashi
+                heikinAshiCandles = convertToHeikinAshi(candles);
+                const latestHaCandle = heikinAshiCandles[heikinAshiCandles.length - 1];
+                
+                // Calculate indicators
+                ema50Data = calculateEMA(heikinAshiCandles, 50);
+                ema100Data = calculateEMA(heikinAshiCandles, 100);
+                atrData = calculateATR(heikinAshiCandles, 14);
+                
+                // Update chart data
+                candleSeries.update(latestHaCandle);
+                ema50Series.setData(ema50Data);
+                ema100Series.setData(ema100Data);
+
+                // Update volume data
+                const volumeItem = {
+                    time: newCandle.time,
+                    value: newCandle.volume,
+                    color: newCandle.close >= newCandle.open ? '#00b894' : '#d63031',
+                };
+
+                if (volumeData.length > 0 && volumeData[volumeData.length - 1].time === newCandle.time) {
+                    volumeData[volumeData.length - 1] = volumeItem;
+                } else {
+                    volumeData.push(volumeItem);
+                    if (volumeData.length > 1000) {
+                        volumeData.shift();
+                    }
+                }
+
+                volumeMAData = calculateMA(volumeData, 20);
+                volumeSeries.update(volumeItem);
+                volumeMASeries.setData(volumeMAData);
+
+                // Update UI
+                updatePriceDisplay(newCandle);
+                updateLastUpdate();
+                
+                const latestEMA50 = ema50Data[ema50Data.length - 1];
+                const latestEMA100 = ema100Data[ema100Data.length - 1];
+                const latestATR = atrData[atrData.length - 1];
+                
+                document.getElementById('ema50').textContent = latestEMA50 ? `$${latestEMA50.value.toFixed(2)}` : '-';
+                document.getElementById('ema100').textContent = latestEMA100 ? `$${latestEMA100.value.toFixed(2)}` : '-';
+                document.getElementById('atrValue').textContent = latestATR ? latestATR.value.toFixed(2) : '-';
+
+                // Detect trade signals if candle is closed
+                if (kline.x) {
+                    detectTradeSignal(latestHaCandle, latestEMA50, latestEMA100, latestATR);
+                }
+
+            } catch (error) {
+                console.error('Error processing kline data:', error);
+            }
+        }
+
+        // Enhanced Doji detection with ATR filter
+        function isEnhancedDoji(candle, atr) {
+            if (!atr || atr.value === 0) return false;
+            
+            const bodySize = Math.abs(candle.close - candle.open);
+            const range = candle.high - candle.low;
+            const dojiRatio = parseFloat(document.getElementById('dojiRatio').value) || 0.08;
+            const atrRatio = bodySize / (atr.value * 0.1); // Normalize against volatility
+            
+            return range > 0 && 
+                   bodySize <= range * dojiRatio && 
+                   atrRatio < 0.5;
+        }
+
+        // Check market structure
+        function checkMarketStructure(recentCandles, isBullish) {
+            if (recentCandles.length < 3) return false;
+            
+            if (isBullish) {
+                // Check for higher lows in bullish trend
+                return recentCandles[1].low > recentCandles[0].low && 
+                       recentCandles[2].low > recentCandles[1].low;
+            } else {
+                // Check for lower highs in bearish trend
+                return recentCandles[1].high < recentCandles[0].high && 
+                       recentCandles[2].high < recentCandles[1].high;
+            }
+        }
+
+        // Check for clean pullback
+        function checkCleanPullback(candles, direction) {
+            if (candles.length < 3) return false;
+            
+            const recentCandles = candles.slice(-3);
+            
+            if (direction === 'buy') {
+                // Need at least 2 red candles with no upper wicks
+                return recentCandles[0].close < recentCandles[0].open &&
+                       recentCandles[1].close < recentCandles[1].open &&
+                       Math.abs(recentCandles[0].high - Math.max(recentCandles[0].open, recentCandles[0].close)) < 0.000001 &&
+                       Math.abs(recentCandles[1].high - Math.max(recentCandles[1].open, recentCandles[1].close)) < 0.000001;
+            } else if (direction === 'sell') {
+                // Need at least 2 green candles with no lower wicks
+                return recentCandles[0].close > recentCandles[0].open &&
+                       recentCandles[1].close > recentCandles[1].open &&
+                       Math.abs(Math.min(recentCandles[0].open, recentCandles[0].close) - recentCandles[0].low) < 0.000001 &&
+                       Math.abs(Math.min(recentCandles[1].open, recentCandles[1].close) - recentCandles[1].low) < 0.000001;
+            }
+            
+            return false;
+        }
+
+        // Check volume for entry
+        function checkVolume(candles, volumeMAData) {
+            if (candles.length < 2 || !volumeMAData || volumeMAData.length < 2) return false;
+            
+            const currentVolume = candles[candles.length - 1].volume;
+            const currentVolumeMA = volumeMAData[volumeMAData.length - 1].value;
+            
+            return currentVolume >= currentVolumeMA * 1.5;
+        }
+
+        // Detect trade signals
+        function detectTradeSignal(candle, ema50, ema100, atr) {
+            try {
+                if (!ema50 || !ema100 || !atr) return;
+                
+                const tradeSizePercent = parseFloat(document.getElementById('tradeSize').value) || 2;
+                const atrMultiplier = parseFloat(document.getElementById('atrMultiplier').value) || 1.5;
+                
+                const isDojiCandle = isEnhancedDoji(candle, atr);
+                if (!isDojiCandle) return;
+                
+                // Check for buy signal
+                if (candle.close > ema100.value && ema50.value > ema100.value) {
+                    const marketStructureValid = checkMarketStructure(heikinAshiCandles.slice(-5), true);
+                    const pullbackValid = checkCleanPullback(heikinAshiCandles, 'buy');
+                    const volumeValid = checkVolume(heikinAshiCandles, volumeMAData);
+                    
+                    if (marketStructureValid && pullbackValid && volumeValid) {
+                        // Prefer green doji for buy
+                        const isGreenDoji = candle.close > candle.open;
+                        if (isGreenDoji) {
+                            executeTrade('buy', candle, ema50, ema100, atr, atrMultiplier, tradeSizePercent);
+                        }
+                    }
+                }
+                // Check for sell signal
+                else if (candle.close < ema100.value && ema50.value < ema100.value) {
+                    const marketStructureValid = checkMarketStructure(heikinAshiCandles.slice(-5), false);
+                    const pullbackValid = checkCleanPullback(heikinAshiCandles, 'sell');
+                    const volumeValid = checkVolume(heikinAshiCandles, volumeMAData);
+                    
+                    if (marketStructureValid && pullbackValid && volumeValid) {
+                        // Prefer red doji for sell
+                        const isRedDoji = candle.close < candle.open;
+                        if (isRedDoji) {
+                            executeTrade('sell', candle, ema50, ema100, atr, atrMultiplier, tradeSizePercent);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error in trade detection:', error);
+            }
+        }
+
+        // Execute trade with ATR-based stops
+        function executeTrade(type, candle, ema50, ema100, atr, atrMultiplier, tradeSizePercent) {
+            if (currentPosition) return; // Don't open new position if one is already open
+            
+            const tradeSize = accountBalance * (tradeSizePercent / 100);
+            const entryPrice = type === 'buy' ? candle.high : candle.low;
+            
+            // ATR-based stops
+            const stopLoss = type === 'buy' 
+                ? entryPrice - (atr.value * atrMultiplier)
+                : entryPrice + (atr.value * atrMultiplier);
+                
+            const takeProfit1 = type === 'buy' 
+                ? entryPrice + (atr.value * atrMultiplier)
+                : entryPrice - (atr.value * atrMultiplier);
+                
+            const takeProfit2 = type === 'buy' 
+                ? entryPrice + (atr.value * atrMultiplier * 2)
+                : entryPrice - (atr.value * atrMultiplier * 2);
+            
+            // Calculate position size based on risk
+            const risk = Math.abs(entryPrice - stopLoss);
+            const positionSize = tradeSize / risk;
+            
+            currentPosition = {
+                type,
+                entryPrice,
+                stopLoss,
+                takeProfit1,
+                takeProfit2,
+                positionSize,
+                entryTime: candle.time,
+                ema50AtEntry: ema50.value,
+                ema100AtEntry: ema100.value
+            };
+            
+            // Add markers to chart
+            addTradeMarkers(candle.time, type, entryPrice, stopLoss, takeProfit1, takeProfit2);
+            
+            // Add to trade history
+            const trade = {
+                id: Date.now(),
+                type,
+                entryPrice,
+                stopLoss,
+                takeProfit1,
+                takeProfit2,
+                positionSize,
+                entryTime: new Date(candle.time * 1000).toISOString(),
+                exitTime: null,
+                exitPrice: null,
+                pnl: null,
+                status: 'open',
+                atr: atr.value
+            };
+            
+            tradeHistory.unshift(trade);
+            saveTradeHistory();
+            updateTradeHistoryDisplay();
+            
+            // Update UI
+            document.getElementById('currentPosition').textContent = `${type.toUpperCase()} @ $${entryPrice.toFixed(2)}`;
+            document.getElementById('currentPosition').className = type === 'buy' ? 'text-green-400 font-mono' : 'text-red-400 font-mono';
+            
+            addAlert(`${type.toUpperCase()} signal executed at $${entryPrice.toFixed(2)} (ATR: ${atr.value.toFixed(2)})`, type);
+        }
+
+        // Close position
+        function closePosition(exitPrice, exitTime, reason) {
+            if (!currentPosition) return;
+            
+            const pnl = currentPosition.type === 'buy' 
+                ? (exitPrice - currentPosition.entryPrice) * currentPosition.positionSize
+                : (currentPosition.entryPrice - exitPrice) * currentPosition.positionSize;
+            
+            // Update account balance
+            accountBalance += pnl;
+            dailyPL += pnl;
+            
+            // Update trade history
+            const openTrade = tradeHistory.find(t => t.status === 'open');
+            if (openTrade) {
+                openTrade.exitPrice = exitPrice;
+                openTrade.exitTime = new Date(exitTime * 1000).toISOString();
+                openTrade.pnl = pnl;
+                openTrade.status = 'closed';
+                openTrade.exitReason = reason;
+            }
+            
+            saveTradeHistory();
+            updateTradeHistoryDisplay();
+            updateAccountDisplay();
+            
+            // Add alert
+            const pnlText = pnl >= 0 ? `Profit: $${pnl.toFixed(2)}` : `Loss: $${Math.abs(pnl).toFixed(2)}`;
+            addAlert(`Position closed at $${exitPrice.toFixed(2)} (${reason}) - ${pnlText}`, pnl >= 0 ? 'buy' : 'sell');
+            
+            // Clear current position
+            currentPosition = null;
+            document.getElementById('currentPosition').textContent = 'None';
+            document.getElementById('currentPosition').className = 'text-blue-400 font-mono';
+            
+            // Clear markers
+            clearTradeMarkers();
+        }
+
+        // Add trade markers to chart
+        function addTradeMarkers(time, type, entry, sl, tp1, tp2) {
+            clearTradeMarkers();
+            
+            // Entry marker
+            markers.push(candleSeries.createPriceLine({
+                price: entry,
+                color: type === 'buy' ? '#00b894' : '#d63031',
+                lineWidth: 2,
+                lineStyle: 0, // Solid
+                axisLabelVisible: true,
+                title: `${type.toUpperCase()} Entry`,
+            }));
+            
+            // Stop loss marker
+            markers.push(candleSeries.createPriceLine({
+                price: sl,
+                color: '#d63031',
+                lineWidth: 1,
+                lineStyle: 2, // Dashed
+                axisLabelVisible: true,
+                title: 'Stop Loss',
+            }));
+            
+            // Take profit 1 marker
+            markers.push(candleSeries.createPriceLine({
+                price: tp1,
+                color: '#00b894',
+                lineWidth: 1,
+                lineStyle: 2, // Dashed
+                axisLabelVisible: true,
+                title: 'Take Profit 1',
+            }));
+            
+            // Take profit 2 marker
+            markers.push(candleSeries.createPriceLine({
+                price: tp2,
+                color: '#00b894',
+                lineWidth: 1,
+                lineStyle: 2, // Dashed
+                axisLabelVisible: true,
+                title: 'Take Profit 2',
+            }));
+        }
+
+        // Clear trade markers from chart
+        function clearTradeMarkers() {
+            markers.forEach(marker => {
+                if (marker && typeof marker.remove === 'function') {
+                    marker.remove();
+                }
+            });
+            markers = [];
+        }
+
+        // Update trade history display
+        function updateTradeHistoryDisplay() {
+            const historyContainer = document.getElementById('tradeHistory');
+            
+            if (tradeHistory.length === 0) {
+                historyContainer.innerHTML = '<p class="text-gray-400">No trades yet...</p>';
+                return;
+            }
+            
+            historyContainer.innerHTML = '';
+            
+            tradeHistory.slice(0, 20).forEach(trade => {
+                const tradeDiv = document.createElement('div');
+                tradeDiv.className = `alert ${trade.type} p-3 rounded`;
+                
+                const pnlClass = trade.pnl >= 0 ? 'trade-profit' : 'trade-loss';
+                const pnlText = trade.pnl !== null ? `$${Math.abs(trade.pnl).toFixed(2)}` : 'Pending';
+                const exitText = trade.exitTime ? 
+                    new Date(trade.exitTime).toLocaleTimeString() : 'Active';
+                const exitReason = trade.exitReason ? ` (${trade.exitReason})` : '';
+                
+                tradeDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="font-bold">
+                            <i class="fas fa-${trade.type === 'buy' ? 'arrow-up' : 'arrow-down'} mr-2"></i>
+                            ${trade.type.toUpperCase()} @ $${trade.entryPrice.toFixed(2)}
+                        </div>
+                        <div class="${pnlClass} text-sm">
+                            ${trade.pnl >= 0 ? '+' : '-'}${pnlText}
+                        </div>
+                    </div>
+                    <div class="text-sm mt-1">
+                        <span class="text-gray-400">SL: $${trade.stopLoss.toFixed(2)}</span>
+                        <span class="ml-2 text-gray-400">TP1: $${trade.takeProfit1.toFixed(2)}</span>
+                        <span class="ml-2 text-gray-400">TP2: $${trade.takeProfit2.toFixed(2)}</span>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1">
+                        <i class="fas fa-clock mr-1"></i>
+                        ${new Date(trade.entryTime).toLocaleTimeString()} → ${exitText}${exitReason}
+                        ${trade.atr ? `<span class="ml-2">ATR: ${trade.atr.toFixed(2)}</span>` : ''}
+                    </div>
+                `;
+                
+                historyContainer.appendChild(tradeDiv);
+            });
+        }
+
+        // Update account display
+        function updateAccountDisplay() {
+            document.getElementById('accountBalance').textContent = 
+                `Balance: $${accountBalance.toFixed(2)}`;
+            document.getElementById('dailyPL').textContent = 
+                dailyPL >= 0 ? `$${dailyPL.toFixed(2)}` : `-$${Math.abs(dailyPL).toFixed(2)}`;
+            document.getElementById('dailyPL').className = 
+                dailyPL >= 0 ? 'text-green-400 font-mono' : 'text-red-400 font-mono';
+        }
+
+        // UI Update functions
+        function updateConnectionStatus(status) {
+            const statusElement = document.getElementById('connectionStatus');
+            const statusMap = {
+                'connected': { class: 'bg-green-600', text: 'Connected', icon: 'fas fa-circle' },
+                'disconnected': { class: 'bg-red-600', text: 'Disconnected', icon: 'fas fa-circle' },
+                'connecting': { class: 'bg-yellow-600', text: 'Connecting...', icon: 'fas fa-spinner fa-spin' },
+                'error': { class: 'bg-red-800', text: 'Error', icon: 'fas fa-exclamation-triangle' }
+            };
+            
+            const config = statusMap[status] || statusMap['error'];
+            statusElement.className = `px-3 py-1 rounded-full text-sm text-white ${config.class}`;
+            statusElement.innerHTML = `<i class="${config.icon} mr-1"></i>${config.text}`;
+        }
+
+        function updatePriceDisplay(candle) {
+            const priceElement = document.getElementById('currentPrice');
+            const change = lastPrice > 0 ? ((candle.close - lastPrice) / lastPrice * 100) : 0;
+            
+            priceElement.textContent = `$${candle.close.toFixed(2)}`;
+            priceElement.className = candle.close >= candle.open ? 'text-green-400 font-mono' : 'text-red-400 font-mono';
+            
+            lastPrice = candle.close;
+            
+            // Check if we need to close position
+            if (currentPosition) {
+                const currentCandle = heikinAshiCandles[heikinAshiCandles.length - 1];
+                const currentEMA50 = ema50Data[ema50Data.length - 1];
+                const currentEMA100 = ema100Data[ema100Data.length - 1];
+                
+                // Check stop loss
+                if ((currentPosition.type === 'buy' && currentCandle.low <= currentPosition.stopLoss) ||
+                    (currentPosition.type === 'sell' && currentCandle.high >= currentPosition.stopLoss)) {
+                    closePosition(
+                        currentPosition.stopLoss,
+                        currentCandle.time,
+                        'SL Hit'
+                    );
+                }
+                // Check take profit 1
+                else if ((currentPosition.type === 'buy' && currentCandle.high >= currentPosition.takeProfit1) ||
+                         (currentPosition.type === 'sell' && currentCandle.low <= currentPosition.takeProfit1)) {
+                    closePosition(
+                        currentPosition.takeProfit1,
+                        currentCandle.time,
+                        'TP1 Hit'
+                    );
+                }
+                // Check take profit 2
+                else if ((currentPosition.type === 'buy' && currentCandle.high >= currentPosition.takeProfit2) ||
+                         (currentPosition.type === 'sell' && currentCandle.low <= currentPosition.takeProfit2)) {
+                    closePosition(
+                        currentPosition.takeProfit2,
+                        currentCandle.time,
+                        'TP2 Hit'
+                    );
+                }
+                // Check if trend is reversing (EMA cross)
+                else if (currentPosition.type === 'buy' && currentEMA50 && currentEMA100 &&
+                         (currentEMA50.value < currentEMA100.value || currentCandle.close < currentEMA100.value)) {
+                    closePosition(
+                        currentCandle.close,
+                        currentCandle.time,
+                        'Trend Reversal'
+                    );
+                }
+                else if (currentPosition.type === 'sell' && currentEMA50 && currentEMA100 &&
+                         (currentEMA50.value > currentEMA100.value || currentCandle.close > currentEMA100.value)) {
+                    closePosition(
+                        currentCandle.close,
+                        currentCandle.time,
+                        'Trend Reversal'
+                    );
+                }
+            }
+        }
+
+        function updateLastUpdate() {
+            const now = new Date();
+            document.getElementById('lastUpdate').innerHTML = 
+                `<i class="fas fa-clock mr-1"></i>Updated: ${now.toLocaleTimeString()}`;
+        }
+
+        function addAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${type} p-3 rounded`;
+            
+            const now = new Date();
+            const typeIcon = type === 'buy' ? 'fas fa-arrow-up' : 
+                           type === 'sell' ? 'fas fa-arrow-down' : 
+                           'fas fa-info-circle';
+            
+            alertDiv.innerHTML = `
+                <div class="font-medium">
+                    <i class="${typeIcon} mr-2"></i>${type.toUpperCase()}: ${message}
+                </div>
+                <div class="text-xs text-gray-400 mt-1">
+                    <i class="fas fa-clock mr-1"></i>${now.toLocaleTimeString()}
+                </div>
+            `;
+            
+            const alertsContainer = document.getElementById('signals');
+            if (alertsContainer.children[0]?.tagName === 'P') {
+                alertsContainer.innerHTML = '';
+            }
+            alertsContainer.insertBefore(alertDiv, alertsContainer.firstChild);
+            
+            // Keep only last 5 alerts
+            while (alertsContainer.children.length > 5) {
+                alertsContainer.removeChild(alertsContainer.lastChild);
+            }
+        }
+
+        // Initialize the application when the page loads
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (socket) {
+                socket.close();
+            }
+        });
+    </script>
+</body>
+</html>
