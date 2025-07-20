@@ -3,316 +3,768 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced Heikin Ashi Trading System</title>
+    <title>Enhanced Heikin Ashi Trading System - Responsive Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.3/dist/lightweight-charts.standalone.production.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-bg: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --dark-bg: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --danger-gradient: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #1e1e2e;
-            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            color: #ffffff;
+            overflow-x: hidden;
         }
+
+        /* Glass morphism effect */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Enhanced gradients */
+        .gradient-primary {
+            background: var(--primary-bg);
+        }
+
+        .gradient-success {
+            background: var(--success-gradient);
+        }
+
+        .gradient-danger {
+            background: var(--danger-gradient);
+        }
+
+        .gradient-warning {
+            background: var(--warning-gradient);
+        }
+
+        /* Chart container */
         .chart-container {
-            height: 600px;
+            height: 70vh;
+            min-height: 500px;
             width: 100%;
-            background-color: #28293d;
-            border-radius: 8px;
-            padding: 20px;
+            border-radius: 20px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 20px;
+            z-index: -1;
+        }
+
         #chart {
             width: 100%;
             height: 100%;
+            border-radius: 16px;
         }
-        .control-panel {
-            background-color: #28293d;
-            max-height: 600px;
-            overflow-y: auto;
+
+        /* Enhanced buttons */
+        .btn-primary {
+            background: var(--primary-bg);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
         }
-        .alert {
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(17, 153, 142, 0.4);
+        }
+
+        /* Enhanced form elements */
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
+
+        .status-connected {
+            background: rgba(17, 153, 142, 0.2);
+            border: 1px solid rgba(17, 153, 142, 0.3);
+            color: #38ef7d;
+        }
+
+        .status-disconnected {
+            background: rgba(238, 9, 121, 0.2);
+            border: 1px solid rgba(238, 9, 121, 0.3);
+            color: #ff6a00;
+        }
+
+        /* Alert styles */
+        .alert {
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .alert.buy::before {
+            background: var(--success-gradient);
+        }
+
+        .alert.sell::before {
+            background: var(--danger-gradient);
+        }
+
+        .alert.system::before {
+            background: var(--primary-bg);
+        }
+
         .alert.buy {
-            border-left: 4px solid #00b894;
-            background-color: rgba(0, 184, 148, 0.1);
+            background: rgba(17, 153, 142, 0.1);
+            border-left-color: #11998e;
         }
+
         .alert.sell {
-            border-left: 4px solid #d63031;
-            background-color: rgba(214, 48, 49, 0.1);
+            background: rgba(238, 9, 121, 0.1);
+            border-left-color: #ee0979;
         }
+
         .alert.system {
-            border-left: 4px solid #6c5ce7;
-            background-color: rgba(108, 92, 231, 0.1);
+            background: rgba(102, 126, 234, 0.1);
+            border-left-color: #667eea;
         }
-        input, select {
-            background-color: #2d2d44;
-            border: 1px solid #3d3d5c;
-            color: #e0e0e0;
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #6c5ce7;
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
         }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-bg);
+            border-radius: 4px;
+        }
+
+        /* Enhanced stats cards */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 50vh;
+                min-height: 400px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+
+            .mobile-hide {
+                display: none;
+            }
+
+            .mobile-stack {
+                flex-direction: column;
+            }
+
+            .mobile-full {
+                width: 100%;
+            }
+
+            .glass-card {
+                margin-bottom: 16px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 45vh;
+                min-height: 350px;
+                padding: 12px;
+            }
+
+            .btn-primary, .btn-success {
+                padding: 10px 20px;
+                font-size: 0.875rem;
+            }
+
+            .status-badge {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .animate-pulse-custom {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        /* Enhanced trade history */
         .trade-history {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
+            padding-right: 8px;
         }
+
         .trade-profit {
-            color: #00b894;
+            color: #38ef7d;
+            font-weight: 600;
         }
+
         .trade-loss {
-            color: #d63031;
+            color: #ff6a00;
+            font-weight: 600;
         }
-        .strategy-guide {
-            background-color: #28293d;
-            padding: 20px;
+
+        /* Color picker styling */
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
             border-radius: 8px;
-            margin-top: 20px;
+            cursor: pointer;
+            background: transparent;
         }
-        .strategy-guide h3 {
-            color: #6c5ce7;
-            margin-bottom: 10px;
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
         }
-        .strategy-guide ul {
-            list-style-type: disc;
-            padding-left: 20px;
-        }
-        .customization-section {
-            background-color: #28293d;
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        .customization-section h3 {
-            color: #6c5ce7;
-            margin-bottom: 10px;
-        }
-        .ma-style-control {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .ma-style-control label {
-            width: 100px;
-        }
-        .color-preview {
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
             width: 20px;
             height: 20px;
-            border-radius: 4px;
-            margin-left: 10px;
-            display: inline-block;
+            border-radius: 50%;
+            background: var(--primary-bg);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Loading animation */
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Collapsible card styles */
+        .collapsible-card {
+            transition: all 0.3s ease;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .collapsible-header h2, 
+        .collapsible-header h3 {
+            margin: 0;
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .collapsible-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible-card.collapsed .collapsible-content {
+            max-height: 0 !important;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            border: none;
+        }
+
+        .collapsible-card.collapsed .collapsible-icon {
+            transform: rotate(-90deg);
+        }
+
+        /* Checklist styles */
+        .checklist {
+            margin-top: 1rem;
+        }
+
+        .checklist-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+
+        .checklist-checkbox {
+            margin-right: 0.5rem;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checklist-checkbox.checked {
+            background-color: #38ef7d;
+            border-color: #38ef7d;
+        }
+
+        .checklist-checkbox.unchecked {
+            background-color: #ff6a00;
+            border-color: #ff6a00;
+        }
+
+        .checklist-checkbox i {
+            font-size: 0.75rem;
+            color: white;
+        }
+
+        .checklist-label {
+            flex: 1;
+        }
+
+        .checklist-label.checked {
+            color: #38ef7d;
+        }
+
+        .checklist-label.unchecked {
+            color: #ff6a00;
         }
     </style>
 </head>
 <body class="min-h-screen">
-    <div class="container mx-auto px-4 py-6 max-w-7xl">
-        <!-- Header -->
-        <header class="bg-gray-800 p-6 rounded-lg mb-6 shadow-lg">
-            <h1 class="text-3xl font-bold text-purple-400 mb-2">
-                <i class="fas fa-chart-line mr-3"></i>Enhanced Heikin Ashi Trading System
-            </h1>
-            <p class="text-gray-300">Professional 1-minute Heikin Ashi strategy with EMA & ATR filters</p>
-            <div class="mt-4">
-                <span id="connectionStatus" class="px-3 py-1 rounded-full text-sm bg-red-600 text-white">
-                    <i class="fas fa-circle mr-1"></i>Disconnected
-                </span>
-                <span id="lastUpdate" class="ml-4 text-gray-400 text-sm">
-                    <i class="fas fa-clock mr-1"></i>No data yet
-                </span>
-                <span id="accountBalance" class="ml-4 text-green-400 text-sm">
-                    <i class="fas fa-wallet mr-1"></i>Balance: $10,000.00
-                </span>
+    <!-- Background decoration -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 opacity-10 blur-3xl"></div>
+        <div class="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-gradient-to-br from-blue-400 to-indigo-400 opacity-10 blur-3xl"></div>
+    </div>
+
+    <div class="container mx-auto px-4 py-6 max-w-7xl relative z-10">
+        <!-- Enhanced Header -->
+        <header class="glass-card rounded-2xl p-6 mb-8 animate-fadeInUp">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                        <i class="fas fa-chart-line mr-3 text-purple-400"></i>Enhanced Heikin Ashi Trading System
+                    </h1>
+                    <p class="text-gray-300 text-lg">Professional 1-minute Heikin Ashi strategy with EMA & ATR filters</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                    <span id="connectionStatus" class="status-badge status-disconnected">
+                        <div class="loading-spinner"></div>
+                        Connecting...
+                    </span>
+                    <div class="text-sm space-y-1">
+                        <div id="lastUpdate" class="text-gray-400">
+                            <i class="fas fa-clock mr-1"></i>Initializing...
+                        </div>
+                        <div id="accountBalance" class="text-green-400 font-semibold">
+                            <i class="fas fa-wallet mr-1"></i>Balance: $10,000.00
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <!-- Dashboard -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Control Panel -->
-            <div class="control-panel bg-gray-800 p-6 rounded-lg shadow-lg">
-                <h2 class="text-xl font-bold text-purple-400 mb-4">
-                    <i class="fas fa-cog mr-2"></i>Trading Settings
-                </h2>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-gray-300 font-medium mb-2">
-                            <i class="fas fa-percentage mr-1"></i>Doji Body Ratio
-                        </label>
-                        <input type="number" id="dojiRatio" value="0.08" step="0.01" min="0.01" max="0.2" class="w-full p-2 rounded">
-                        <p class="text-xs text-gray-400 mt-1">Max body size relative to candle range (0.01-0.2)</p>
+        <!-- Enhanced Dashboard -->
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 lg:gap-8">
+            <!-- Enhanced Control Panel -->
+            <div class="xl:col-span-1 space-y-6">
+                <!-- Trading Settings -->
+                <div class="glass-card rounded-2xl animate-fadeInUp collapsible-card">
+                    <div class="collapsible-header" onclick="toggleCollapse(this.parentElement)">
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-cog mr-3 text-purple-400"></i>
+                            <span class="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Trading Settings</span>
+                        </h2>
+                        <i class="fas fa-chevron-down collapsible-icon"></i>
                     </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 font-medium mb-2">
-                            <i class="fas fa-chart-bar mr-1"></i>Volume MA Period
-                        </label>
-                        <input type="number" id="volumeMAPeriod" value="20" min="5" max="50" class="w-full p-2 rounded">
-                        <p class="text-xs text-gray-400 mt-1">Periods for volume moving average (5-50)</p>
+                    <div class="collapsible-content p-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-gray-300 font-medium mb-3 flex items-center">
+                                    <i class="fas fa-percentage mr-2 text-purple-400"></i>Doji Body Ratio
+                                </label>
+                                <input type="number" id="dojiRatio" value="0.08" step="0.01" min="0.01" max="0.2" 
+                                       class="form-input w-full">
+                                <p class="text-xs text-gray-400 mt-2">Max body size relative to candle range (0.01-0.2)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-300 font-medium mb-3 flex items-center">
+                                    <i class="fas fa-chart-bar mr-2 text-purple-400"></i>Volume MA Period
+                                </label>
+                                <input type="number" id="volumeMAPeriod" value="20" min="5" max="50" 
+                                       class="form-input w-full">
+                                <p class="text-xs text-gray-400 mt-2">Periods for volume moving average (5-50)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-300 font-medium mb-3 flex items-center">
+                                    <i class="fas fa-dollar-sign mr-2 text-purple-400"></i>Trade Size (%)
+                                </label>
+                                <input type="number" id="tradeSize" value="2" min="1" max="10" 
+                                       class="form-input w-full">
+                                <p class="text-xs text-gray-400 mt-2">Risk per trade (1%-10% of balance)</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-300 font-medium mb-3 flex items-center">
+                                    <i class="fas fa-bullseye mr-2 text-purple-400"></i>ATR Multiplier
+                                </label>
+                                <input type="number" id="atrMultiplier" value="1.5" step="0.1" min="1" max="3" 
+                                       class="form-input w-full">
+                                <p class="text-xs text-gray-400 mt-2">Stop loss/take profit distance (1-3x ATR)</p>
+                            </div>
+                            
+                            <button id="applySettings" class="btn-primary w-full flex items-center justify-center gap-2">
+                                <i class="fas fa-check"></i>Apply Settings
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 font-medium mb-2">
-                            <i class="fas fa-dollar-sign mr-1"></i>Trade Size (%)
-                        </label>
-                        <input type="number" id="tradeSize" value="2" min="1" max="10" class="w-full p-2 rounded">
-                        <p class="text-xs text-gray-400 mt-1">Risk per trade (1%-10% of balance)</p>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-gray-300 font-medium mb-2">
-                            <i class="fas fa-bullseye mr-1"></i>ATR Multiplier
-                        </label>
-                        <input type="number" id="atrMultiplier" value="1.5" step="0.1" min="1" max="3" class="w-full p-2 rounded">
-                        <p class="text-xs text-gray-400 mt-1">Stop loss/take profit distance (1-3x ATR)</p>
-                    </div>
-                    
-                    <button id="applySettings" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition">
-                        <i class="fas fa-check mr-2"></i>Apply Settings
-                    </button>
                 </div>
 
-                <!-- Moving Average Customization -->
-                <div class="customization-section mt-6">
-                    <h3 class="text-lg font-bold text-purple-400 mb-3">
-                        <i class="fas fa-sliders-h mr-2"></i>MA Customization
-                    </h3>
-                    
-                    <div class="ma-style-control">
-                        <label class="text-gray-300">EMA 50 Color:</label>
-                        <input type="color" id="ema50Color" value="#f1c40f" class="ml-2">
-                        <span class="color-preview" id="ema50Preview" style="background-color: #f1c40f;"></span>
+                <!-- MA Customization -->
+                <div class="glass-card rounded-2xl animate-fadeInUp collapsible-card">
+                    <div class="collapsible-header" onclick="toggleCollapse(this.parentElement)">
+                        <h3 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-sliders-h mr-2 text-blue-400"></i>MA Customization
+                        </h3>
+                        <i class="fas fa-chevron-down collapsible-icon"></i>
                     </div>
-                    
-                    <div class="ma-style-control">
-                        <label class="text-gray-300">EMA 50 Width:</label>
-                        <input type="range" id="ema50Width" min="1" max="5" value="1" class="ml-2 w-24">
+                    <div class="collapsible-content p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-300 text-sm">EMA 50</span>
+                                <div class="flex items-center gap-3">
+                                    <input type="color" id="ema50Color" value="#f1c40f" class="rounded-lg">
+                                    <input type="range" id="ema50Width" min="1" max="5" value="1" class="w-16">
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <span class="text-gray-300 text-sm">EMA 100</span>
+                                <div class="flex items-center gap-3">
+                                    <input type="color" id="ema100Color" value="#e67e22" class="rounded-lg">
+                                    <input type="range" id="ema100Width" min="1" max="5" value="2" class="w-16">
+                                </div>
+                            </div>
+                            
+                            <button id="applyMAstyles" class="btn-success w-full flex items-center justify-center gap-2 mt-4">
+                                <i class="fas fa-paint-brush"></i>Apply Styles
+                            </button>
+                        </div>
                     </div>
-                    
-                    <div class="ma-style-control">
-                        <label class="text-gray-300">EMA 100 Color:</label>
-                        <input type="color" id="ema100Color" value="#e67e22" class="ml-2">
-                        <span class="color-preview" id="ema100Preview" style="background-color: #e67e22;"></span>
-                    </div>
-                    
-                    <div class="ma-style-control">
-                        <label class="text-gray-300">EMA 100 Width:</label>
-                        <input type="range" id="ema100Width" min="1" max="5" value="2" class="ml-2 w-24">
-                    </div>
-                    
-                    <button id="applyMAstyles" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition mt-2">
-                        <i class="fas fa-paint-brush mr-2"></i>Apply MA Styles
-                    </button>
                 </div>
 
                 <!-- Live Statistics -->
-                <div class="mt-6">
-                    <h3 class="text-lg font-bold text-purple-400 mb-3">
-                        <i class="fas fa-chart-area mr-2"></i>Live Stats
-                    </h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Current Price:</span>
-                            <span id="currentPrice" class="text-green-400 font-mono">-</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">EMA 50:</span>
-                            <span id="ema50" class="text-yellow-400 font-mono">-</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">EMA 100:</span>
-                            <span id="ema100" class="text-orange-400 font-mono">-</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">ATR (14):</span>
-                            <span id="atrValue" class="text-blue-400 font-mono">-</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Position:</span>
-                            <span id="currentPosition" class="text-blue-400 font-mono">None</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Today's P/L:</span>
-                            <span id="dailyPL" class="text-green-400 font-mono">$0.00</span>
+                <div class="glass-card rounded-2xl animate-fadeInUp collapsible-card">
+                    <div class="collapsible-header" onclick="toggleCollapse(this.parentElement)">
+                        <h3 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-chart-area mr-2 text-green-400"></i>Live Statistics
+                        </h3>
+                        <i class="fas fa-chevron-down collapsible-icon"></i>
+                    </div>
+                    <div class="collapsible-content p-6">
+                        <div class="space-y-3">
+                            <div class="stat-card flex justify-between items-center">
+                                <span class="text-gray-400 text-sm">Current Price</span>
+                                <span id="currentPrice" class="text-green-400 font-mono font-semibold">-</span>
+                            </div>
+                            <div class="stat-card flex justify-between items-center">
+                                <span class="text-gray-400 text-sm">EMA 50</span>
+                                <span id="ema50" class="text-yellow-400 font-mono font-semibold">-</span>
+                            </div>
+                            <div class="stat-card flex justify-between items-center">
+                                <span class="text-gray-400 text-sm">EMA 100</span>
+                                <span id="ema100" class="text-orange-400 font-mono font-semibold">-</span>
+                            </div>
+                            <div class="stat-card flex justify-between items-center">
+                                <span class="text-gray-400 text-sm">ATR (14)</span>
+                                <span id="atrValue" class="text-blue-400 font-mono font-semibold">-</span>
+                            </div>
+                            <div class="stat-card flex justify-between items-center">
+                                <span class="text-gray-400 text-sm">Position</span>
+                                <span id="currentPosition" class="text-blue-400 font-mono font-semibold">None</span>
+                            </div>
+                            <div class="stat-card flex justify-between items-center">
+                                <span class="text-gray-400 text-sm">Today's P/L</span>
+                                <span id="dailyPL" class="text-green-400 font-mono font-semibold">$0.00</span>
+                            </div>
+                            
+                            <!-- Trade Requirements Checklist -->
+                            <div class="stat-card">
+                                <div id="tradeConditionsChecklist">
+                                    <!-- Will be populated by JavaScript -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Active Signals -->
-                <div class="mt-6">
-                    <h3 class="text-lg font-bold text-purple-400 mb-3">
-                        <i class="fas fa-bell mr-2"></i>Active Signals
-                    </h3>
-                    <div id="signals" class="space-y-2 max-h-40 overflow-y-auto">
-                        <p class="text-gray-400 text-sm">Waiting for signals...</p>
+                <div class="glass-card rounded-2xl animate-fadeInUp collapsible-card">
+                    <div class="collapsible-header" onclick="toggleCollapse(this.parentElement)">
+                        <h3 class="text-lg font-bold flex items-center">
+                            <i class="fas fa-bell mr-2 text-yellow-400"></i>Active Signals
+                        </h3>
+                        <i class="fas fa-chevron-down collapsible-icon"></i>
+                    </div>
+                    <div class="collapsible-content p-6">
+                        <div id="signals" class="space-y-2 max-h-48 overflow-y-auto">
+                            <div class="text-gray-400 text-sm text-center py-4">
+                                <i class="fas fa-hourglass-half animate-pulse-custom mb-2 block text-lg"></i>
+                                Waiting for signals...
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Chart Container -->
-            <div class="lg:col-span-3">
-                <div class="chart-container shadow-lg">
+            <!-- Enhanced Chart Section -->
+            <div class="xl:col-span-3 space-y-6">
+                <!-- Chart Container -->
+                <div class="glass-card chart-container animate-fadeInUp">
                     <div id="chart"></div>
                 </div>
                 
                 <!-- Strategy Guide -->
-                <div class="strategy-guide mt-6">
-                    <h3 class="text-xl font-bold text-purple-400 mb-3">
-                        <i class="fas fa-book mr-2"></i>Strategy Guide
-                    </h3>
-                    
-                    <h4 class="font-bold text-purple-300 mt-4">How This Strategy Works:</h4>
-                    <ol class="list-decimal pl-5 mt-2 space-y-2">
-                        <li><strong>Trend Identification</strong>: We only trade when EMA 50 is above EMA 100 (bullish) or below (bearish)</li>
-                        <li><strong>Entry Signal</strong>: Look for Doji candles (small body) that form after a pullback to the EMA 100</li>
-                        <li><strong>Volume Confirmation</strong>: Volume must be 1.5x above the 20-period moving average</li>
-                        <li><strong>Market Structure</strong>: Requires higher lows in uptrends or lower highs in downtrends</li>
-                        <li><strong>Risk Management</strong>: Stops are placed at 1.5x ATR from entry, with two take profit levels</li>
-                    </ol>
-                    
-                    <h4 class="font-bold text-purple-300 mt-4">Why It's Profitable:</h4>
-                    <ul class="list-disc pl-5 mt-2 space-y-2">
-                        <li>Heikin Ashi candles filter market noise, showing cleaner trends</li>
-                        <li>EMA crossover confirms the overall market direction</li>
-                        <li>Doji patterns identify potential reversal points with precision</li>
-                        <li>Volume confirmation ensures institutional participation</li>
-                        <li>ATR-based stops adapt to current market volatility</li>
-                    </ul>
-                    
-                    <h4 class="font-bold text-purple-300 mt-4">Parameter Optimization Guide:</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                        <div class="bg-gray-700 p-3 rounded-lg">
-                            <h5 class="font-bold text-blue-300">Doji Body Ratio (0.01-0.2)</h5>
-                            <p class="text-sm">Lower values = stricter Doji requirements. Try 0.05-0.1 for more precise entries.</p>
+                <div class="glass-card rounded-2xl animate-fadeInUp collapsible-card">
+                    <div class="collapsible-header" onclick="toggleCollapse(this.parentElement)">
+                        <h3 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-book mr-3 text-indigo-400"></i>
+                            <span class="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">Strategy Guide</span>
+                        </h3>
+                        <i class="fas fa-chevron-down collapsible-icon"></i>
+                    </div>
+                    <div class="collapsible-content p-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <h4 class="font-semibold text-purple-300 text-lg">How It Works:</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-gray-300">
+                                    <li><strong>Trend Identification</strong>: Only trade when EMA 50 is above/below EMA 100</li>
+                                    <li><strong>Entry Signal</strong>: Doji candles after pullback to EMA 100</li>
+                                    <li><strong>Volume Confirmation</strong>: 1.5x above 20-period MA</li>
+                                    <li><strong>Market Structure</strong>: Higher lows in uptrends</li>
+                                    <li><strong>Risk Management</strong>: 1.5x ATR stops with dual targets</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="space-y-4">
+                                <h4 class="font-semibold text-purple-300 text-lg">Why It's Profitable:</h4>
+                                <ul class="list-disc list-inside space-y-2 text-gray-300">
+                                    <li>Heikin Ashi filters market noise</li>
+                                    <li>EMA crossover confirms direction</li>
+                                    <li>Doji patterns identify reversals</li>
+                                    <li>Volume ensures institutional participation</li>
+                                    <li>ATR stops adapt to volatility</li>
+                                </ul>
+                            </div>
                         </div>
-                        <div class="bg-gray-700 p-3 rounded-lg">
-                            <h5 class="font-bold text-blue-300">Volume MA Period (5-50)</h5>
-                            <p class="text-sm">Higher values = smoother volume average. 20 works well for 1-minute charts.</p>
-                        </div>
-                        <div class="bg-gray-700 p-3 rounded-lg">
-                            <h5 class="font-bold text-blue-300">Trade Size (1%-10%)</h5>
-                            <p class="text-sm">Risk per trade. Conservative traders use 1-2%, aggressive 3-5%.</p>
-                        </div>
-                        <div class="bg-gray-700 p-3 rounded-lg">
-                            <h5 class="font-bold text-blue-300">ATR Multiplier (1-3)</h5>
-                            <p class="text-sm">Higher values = wider stops (fewer wins but bigger profits). 1.5-2 is optimal.</p>
+                        
+                        <div class="mt-8">
+                            <h4 class="font-semibold text-purple-300 text-lg mb-4">Parameter Optimization:</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="glass-card p-4 rounded-xl">
+                                    <h5 class="font-semibold text-blue-300 mb-2">Doji Body Ratio (0.01-0.2)</h5>
+                                    <p class="text-sm text-gray-300">Lower values = stricter requirements. Try 0.05-0.1 for precision.</p>
+                                </div>
+                                <div class="glass-card p-4 rounded-xl">
+                                    <h5 class="font-semibold text-blue-300 mb-2">Volume MA Period (5-50)</h5>
+                                    <p class="text-sm text-gray-300">Higher values = smoother average. 20 works well for 1-minute charts.</p>
+                                </div>
+                                <div class="glass-card p-4 rounded-xl">
+                                    <h5 class="font-semibold text-blue-300 mb-2">Trade Size (1%-10%)</h5>
+                                    <p class="text-sm text-gray-300">Risk per trade. Conservative: 1-2%, aggressive: 3-5%.</p>
+                                </div>
+                                <div class="glass-card p-4 rounded-xl">
+                                    <h5 class="font-semibold text-blue-300 mb-2">ATR Multiplier (1-3)</h5>
+                                    <p class="text-sm text-gray-300">Higher = wider stops (fewer wins, bigger profits). 1.5-2 optimal.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Trade History -->
-        <div class="mt-6 bg-gray-800 p-6 rounded-lg shadow-lg">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-purple-400">
-                    <i class="fas fa-history mr-2"></i>Trade History
-                </h2>
-                <button id="clearHistory" class="bg-red-600 hover:bg-red-700 text-white text-sm py-1 px-3 rounded">
-                    <i class="fas fa-trash mr-1"></i>Clear History
-                </button>
+        <!-- Enhanced Trade History -->
+        <div class="mt-8 glass-card rounded-2xl animate-fadeInUp collapsible-card">
+            <div class="collapsible-header" onclick="toggleCollapse(this.parentElement)">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
+                    <h2 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-history mr-3 text-green-400"></i>
+                        <span class="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">Trade History</span>
+                    </h2>
+                    <button id="clearHistory" class="btn-primary bg-red-500 hover:bg-red-600 flex items-center gap-2 text-sm px-4 py-2">
+                        <i class="fas fa-trash"></i>Clear History
+                    </button>
+                </div>
+                <i class="fas fa-chevron-down collapsible-icon"></i>
             </div>
-            <div id="tradeHistory" class="trade-history space-y-2">
-                <p class="text-gray-400">No trades yet...</p>
+            <div class="collapsible-content p-6">
+                <div id="tradeHistory" class="trade-history">
+                    <div class="text-gray-400 text-center py-8">
+                        <i class="fas fa-chart-line text-3xl mb-4 opacity-50"></i>
+                        <p>No trades yet. Waiting for signals...</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -341,6 +793,124 @@
         let currentPosition = null;
         let tradeHistory = [];
         let markers = [];
+        let currentTradeConditions = {
+            buy: {
+                trend: false,
+                doji: false,
+                volume: false,
+                marketStructure: false,
+                pullback: false
+            },
+            sell: {
+                trend: false,
+                doji: false,
+                volume: false,
+                marketStructure: false,
+                pullback: false
+            }
+        };
+
+        // Collapse toggle function
+        function toggleCollapse(card) {
+            card.classList.toggle('collapsed');
+        }
+
+        // Update trade conditions checklist
+        function updateTradeConditionsChecklist() {
+            const checklistContainer = document.getElementById('tradeConditionsChecklist');
+            
+            let html = `
+                <div class="checklist">
+                    <div class="checklist-title">Buy Conditions:</div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.buy.trend ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.buy.trend ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.buy.trend ? 'checked' : 'unchecked'}">
+                            EMA 50 > EMA 100 (Trend)
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.buy.doji ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.buy.doji ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.buy.doji ? 'checked' : 'unchecked'}">
+                            Valid Doji Pattern
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.buy.volume ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.buy.volume ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.buy.volume ? 'checked' : 'unchecked'}">
+                            Volume 1.5x > MA
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.buy.marketStructure ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.buy.marketStructure ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.buy.marketStructure ? 'checked' : 'unchecked'}">
+                            Higher Lows (Market Structure)
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.buy.pullback ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.buy.pullback ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.buy.pullback ? 'checked' : 'unchecked'}">
+                            Clean Pullback to EMA 100
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="checklist mt-4">
+                    <div class="checklist-title">Sell Conditions:</div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.sell.trend ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.sell.trend ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.sell.trend ? 'checked' : 'unchecked'}">
+                            EMA 50 < EMA 100 (Trend)
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.sell.doji ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.sell.doji ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.sell.doji ? 'checked' : 'unchecked'}">
+                            Valid Doji Pattern
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.sell.volume ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.sell.volume ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.sell.volume ? 'checked' : 'unchecked'}">
+                            Volume 1.5x > MA
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.sell.marketStructure ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.sell.marketStructure ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.sell.marketStructure ? 'checked' : 'unchecked'}">
+                            Lower Highs (Market Structure)
+                        </div>
+                    </div>
+                    <div class="checklist-item">
+                        <div class="checklist-checkbox ${currentTradeConditions.sell.pullback ? 'checked' : 'unchecked'}">
+                            <i class="fas fa-${currentTradeConditions.sell.pullback ? 'check' : 'times'}"></i>
+                        </div>
+                        <div class="checklist-label ${currentTradeConditions.sell.pullback ? 'checked' : 'unchecked'}">
+                            Clean Pullback to EMA 100
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            checklistContainer.innerHTML = html;
+        }
 
         // Initialize the application
         function initializeApp() {
@@ -353,6 +923,9 @@
                 loadInitialData();
                 setupEventListeners();
                 addAlert('Enhanced system initialized successfully', 'system');
+                
+                // Initialize trade conditions checklist
+                updateTradeConditionsChecklist();
             } catch (error) {
                 console.error('Initialization error:', error);
                 addAlert('Failed to initialize application', 'system');
@@ -368,17 +941,17 @@
 
             chart = LightweightCharts.createChart(chartContainer, {
                 layout: {
-                    backgroundColor: '#28293d',
+                    backgroundColor: 'transparent',
                     textColor: '#e0e0e0',
                     fontSize: 12,
                 },
                 grid: {
                     vertLines: {
-                        color: '#3d3d5c',
+                        color: 'rgba(255, 255, 255, 0.1)',
                         style: 1,
                     },
                     horzLines: {
-                        color: '#3d3d5c',
+                        color: 'rgba(255, 255, 255, 0.1)',
                         style: 1,
                     },
                 },
@@ -386,19 +959,19 @@
                     mode: LightweightCharts.CrosshairMode.Normal,
                 },
                 rightPriceScale: {
-                    borderColor: '#3d3d5c',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
                     scaleMargins: {
                         top: 0.1,
                         bottom: 0.4,
                     },
                 },
                 timeScale: {
-                    borderColor: '#3d3d5c',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
                     timeVisible: true,
                     secondsVisible: false,
                 },
                 watermark: {
-                    color: '#6c5ce7',
+                    color: 'rgba(102, 126, 234, 0.5)',
                     visible: true,
                     text: 'BTC/USDT (Enhanced Heikin Ashi)',
                     fontSize: 24,
@@ -408,29 +981,29 @@
             });
 
             candleSeries = chart.addCandlestickSeries({
-                upColor: '#00b894',
-                downColor: '#d63031',
-                borderDownColor: '#d63031',
-                borderUpColor: '#00b894',
-                wickDownColor: '#d63031',
-                wickUpColor: '#00b894',
+                upColor: '#38ef7d',
+                downColor: '#ff6a00',
+                borderDownColor: '#ff6a00',
+                borderUpColor: '#38ef7d',
+                wickDownColor: '#ff6a00',
+                wickUpColor: '#38ef7d',
                 priceScaleId: 'right',
             });
 
             ema50Series = chart.addLineSeries({
-                color: '#f1c40f', // Yellow
+                color: '#f1c40f',
                 lineWidth: 1,
                 priceScaleId: 'right',
             });
 
             ema100Series = chart.addLineSeries({
-                color: '#e67e22', // Orange
+                color: '#e67e22',
                 lineWidth: 2,
                 priceScaleId: 'right',
             });
 
             volumeSeries = chart.addHistogramSeries({
-                color: '#6c5ce7',
+                color: '#667eea',
                 priceFormat: {
                     type: 'volume',
                 },
@@ -485,15 +1058,6 @@
                     updateAccountDisplay();
                     addAlert('Trade history cleared', 'system');
                 }
-            });
-            
-            // Update color previews when color inputs change
-            document.getElementById('ema50Color').addEventListener('input', function() {
-                document.getElementById('ema50Preview').style.backgroundColor = this.value;
-            });
-            
-            document.getElementById('ema100Color').addEventListener('input', function() {
-                document.getElementById('ema100Preview').style.backgroundColor = this.value;
             });
         }
 
@@ -677,7 +1241,7 @@
                 volumeData = data.map(k => ({
                     time: Math.floor(k[0] / 1000),
                     value: parseFloat(k[5]),
-                    color: parseFloat(k[4]) >= parseFloat(k[1]) ? '#00b894' : '#d63031',
+                    color: parseFloat(k[4]) >= parseFloat(k[1]) ? '#38ef7d' : '#ff6a00',
                 }));
                 
                 volumeMAData = calculateMA(volumeData, 20);
@@ -791,7 +1355,7 @@
                 const volumeItem = {
                     time: newCandle.time,
                     value: newCandle.volume,
-                    color: newCandle.close >= newCandle.open ? '#00b894' : '#d63031',
+                    color: newCandle.close >= newCandle.open ? '#38ef7d' : '#ff6a00',
                 };
 
                 if (volumeData.length > 0 && volumeData[volumeData.length - 1].time === newCandle.time) {
@@ -819,6 +1383,9 @@
                 document.getElementById('ema100').textContent = latestEMA100 ? `$${latestEMA100.value.toFixed(2)}` : '-';
                 document.getElementById('atrValue').textContent = latestATR ? latestATR.value.toFixed(2) : '-';
 
+                // Update trade conditions
+                updateTradeConditions(latestHaCandle, latestEMA50, latestEMA100, latestATR);
+
                 // Detect trade signals if candle is closed
                 if (kline.x) {
                     detectTradeSignal(latestHaCandle, latestEMA50, latestEMA100, latestATR);
@@ -827,6 +1394,60 @@
             } catch (error) {
                 console.error('Error processing kline data:', error);
             }
+        }
+
+        // Update trade conditions
+        function updateTradeConditions(candle, ema50, ema100, atr) {
+            // Reset conditions
+            currentTradeConditions = {
+                buy: {
+                    trend: false,
+                    doji: false,
+                    volume: false,
+                    marketStructure: false,
+                    pullback: false
+                },
+                sell: {
+                    trend: false,
+                    doji: false,
+                    volume: false,
+                    marketStructure: false,
+                    pullback: false
+                }
+            };
+
+            // Check for buy conditions
+            if (ema50 && ema100) {
+                currentTradeConditions.buy.trend = ema50.value > ema100.value;
+                currentTradeConditions.sell.trend = ema50.value < ema100.value;
+            }
+
+            if (candle) {
+                const isDoji = isEnhancedDoji(candle, atr);
+                currentTradeConditions.buy.doji = isDoji && candle.close > candle.open;
+                currentTradeConditions.sell.doji = isDoji && candle.close < candle.open;
+            }
+
+            if (volumeData.length > 0 && volumeMAData.length > 0) {
+                const currentVolume = volumeData[volumeData.length - 1].value;
+                const currentVolumeMA = volumeMAData[volumeMAData.length - 1].value;
+                const volumeValid = currentVolume >= currentVolumeMA * 1.5;
+                currentTradeConditions.buy.volume = volumeValid;
+                currentTradeConditions.sell.volume = volumeValid;
+            }
+
+            if (heikinAshiCandles.length >= 5) {
+                currentTradeConditions.buy.marketStructure = checkMarketStructure(heikinAshiCandles.slice(-5), true);
+                currentTradeConditions.sell.marketStructure = checkMarketStructure(heikinAshiCandles.slice(-5), false);
+            }
+
+            if (heikinAshiCandles.length >= 3) {
+                currentTradeConditions.buy.pullback = checkCleanPullback(heikinAshiCandles, 'buy');
+                currentTradeConditions.sell.pullback = checkCleanPullback(heikinAshiCandles, 'sell');
+            }
+
+            // Update the checklist display
+            updateTradeConditionsChecklist();
         }
 
         // Enhanced Doji detection with ATR filter
@@ -997,7 +1618,7 @@
             
             // Update UI
             document.getElementById('currentPosition').textContent = `${type.toUpperCase()} @ $${entryPrice.toFixed(2)}`;
-            document.getElementById('currentPosition').className = type === 'buy' ? 'text-green-400 font-mono' : 'text-red-400 font-mono';
+            document.getElementById('currentPosition').className = type === 'buy' ? 'text-green-400 font-mono font-semibold' : 'text-red-400 font-mono font-semibold';
             
             addAlert(`${type.toUpperCase()} signal executed at $${entryPrice.toFixed(2)} (ATR: ${atr.value.toFixed(2)})`, type);
         }
@@ -1035,7 +1656,7 @@
             // Clear current position
             currentPosition = null;
             document.getElementById('currentPosition').textContent = 'None';
-            document.getElementById('currentPosition').className = 'text-blue-400 font-mono';
+            document.getElementById('currentPosition').className = 'text-blue-400 font-mono font-semibold';
             
             // Clear markers
             clearTradeMarkers();
@@ -1048,7 +1669,7 @@
             // Entry marker
             markers.push(candleSeries.createPriceLine({
                 price: entry,
-                color: type === 'buy' ? '#00b894' : '#d63031',
+                color: type === 'buy' ? '#38ef7d' : '#ff6a00',
                 lineWidth: 2,
                 lineStyle: 0, // Solid
                 axisLabelVisible: true,
@@ -1058,7 +1679,7 @@
             // Stop loss marker
             markers.push(candleSeries.createPriceLine({
                 price: sl,
-                color: '#d63031',
+                color: '#ff6a00',
                 lineWidth: 1,
                 lineStyle: 2, // Dashed
                 axisLabelVisible: true,
@@ -1068,7 +1689,7 @@
             // Take profit 1 marker
             markers.push(candleSeries.createPriceLine({
                 price: tp1,
-                color: '#00b894',
+                color: '#38ef7d',
                 lineWidth: 1,
                 lineStyle: 2, // Dashed
                 axisLabelVisible: true,
@@ -1078,7 +1699,7 @@
             // Take profit 2 marker
             markers.push(candleSeries.createPriceLine({
                 price: tp2,
-                color: '#00b894',
+                color: '#38ef7d',
                 lineWidth: 1,
                 lineStyle: 2, // Dashed
                 axisLabelVisible: true,
@@ -1101,7 +1722,12 @@
             const historyContainer = document.getElementById('tradeHistory');
             
             if (tradeHistory.length === 0) {
-                historyContainer.innerHTML = '<p class="text-gray-400">No trades yet...</p>';
+                historyContainer.innerHTML = `
+                    <div class="text-gray-400 text-center py-8">
+                        <i class="fas fa-chart-line text-3xl mb-4 opacity-50"></i>
+                        <p>No trades yet. Waiting for signals...</p>
+                    </div>
+                `;
                 return;
             }
             
@@ -1109,7 +1735,7 @@
             
             tradeHistory.slice(0, 20).forEach(trade => {
                 const tradeDiv = document.createElement('div');
-                tradeDiv.className = `alert ${trade.type} p-3 rounded`;
+                tradeDiv.className = `alert ${trade.type} mb-4 transform hover:scale-105 transition-transform duration-200`;
                 
                 const pnlClass = trade.pnl >= 0 ? 'trade-profit' : 'trade-loss';
                 const pnlText = trade.pnl !== null ? `$${Math.abs(trade.pnl).toFixed(2)}` : 'Pending';
@@ -1118,24 +1744,26 @@
                 const exitReason = trade.exitReason ? ` (${trade.exitReason})` : '';
                 
                 tradeDiv.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div class="font-bold">
-                            <i class="fas fa-${trade.type === 'buy' ? 'arrow-up' : 'arrow-down'} mr-2"></i>
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="font-bold text-lg flex items-center">
+                            <i class="fas fa-${trade.type === 'buy' ? 'arrow-up text-green-400' : 'arrow-down text-red-400'} mr-3"></i>
                             ${trade.type.toUpperCase()} @ $${trade.entryPrice.toFixed(2)}
                         </div>
-                        <div class="${pnlClass} text-sm">
+                        <div class="${pnlClass} text-lg font-semibold">
                             ${trade.pnl >= 0 ? '+' : '-'}${pnlText}
                         </div>
                     </div>
-                    <div class="text-sm mt-1">
-                        <span class="text-gray-400">SL: $${trade.stopLoss.toFixed(2)}</span>
-                        <span class="ml-2 text-gray-400">TP1: $${trade.takeProfit1.toFixed(2)}</span>
-                        <span class="ml-2 text-gray-400">TP2: $${trade.takeProfit2.toFixed(2)}</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm mb-2">
+                        <span class="text-gray-300">SL: <span class="text-red-400 font-mono">$${trade.stopLoss.toFixed(2)}</span></span>
+                        <span class="text-gray-300">TP1: <span class="text-green-400 font-mono">$${trade.takeProfit1.toFixed(2)}</span></span>
+                        <span class="text-gray-300">TP2: <span class="text-green-400 font-mono">$${trade.takeProfit2.toFixed(2)}</span></span>
                     </div>
-                    <div class="text-xs text-gray-400 mt-1">
-                        <i class="fas fa-clock mr-1"></i>
-                        ${new Date(trade.entryTime).toLocaleTimeString()} → ${exitText}${exitReason}
-                        ${trade.atr ? `<span class="ml-2">ATR: ${trade.atr.toFixed(2)}</span>` : ''}
+                    <div class="flex flex-col sm:flex-row sm:justify-between text-xs text-gray-400">
+                        <div>
+                            <i class="fas fa-clock mr-1"></i>
+                            ${new Date(trade.entryTime).toLocaleTimeString()} → ${exitText}${exitReason}
+                        </div>
+                        ${trade.atr ? `<div class="mt-1 sm:mt-0">ATR: <span class="font-mono">${trade.atr.toFixed(2)}</span></div>` : ''}
                     </div>
                 `;
                 
@@ -1150,22 +1778,38 @@
             document.getElementById('dailyPL').textContent = 
                 dailyPL >= 0 ? `$${dailyPL.toFixed(2)}` : `-$${Math.abs(dailyPL).toFixed(2)}`;
             document.getElementById('dailyPL').className = 
-                dailyPL >= 0 ? 'text-green-400 font-mono' : 'text-red-400 font-mono';
+                dailyPL >= 0 ? 'text-green-400 font-mono font-semibold' : 'text-red-400 font-mono font-semibold';
         }
 
         // UI Update functions
         function updateConnectionStatus(status) {
             const statusElement = document.getElementById('connectionStatus');
             const statusMap = {
-                'connected': { class: 'bg-green-600', text: 'Connected', icon: 'fas fa-circle' },
-                'disconnected': { class: 'bg-red-600', text: 'Disconnected', icon: 'fas fa-circle' },
-                'connecting': { class: 'bg-yellow-600', text: 'Connecting...', icon: 'fas fa-spinner fa-spin' },
-                'error': { class: 'bg-red-800', text: 'Error', icon: 'fas fa-exclamation-triangle' }
+                'connected': { 
+                    class: 'status-connected', 
+                    text: 'Connected', 
+                    icon: '<i class="fas fa-circle animate-pulse-custom"></i>' 
+                },
+                'disconnected': { 
+                    class: 'status-disconnected', 
+                    text: 'Disconnected', 
+                    icon: '<i class="fas fa-circle"></i>' 
+                },
+                'connecting': { 
+                    class: 'status-badge bg-yellow-500 bg-opacity-20 border-yellow-500 text-yellow-400', 
+                    text: 'Connecting...', 
+                    icon: '<div class="loading-spinner"></div>' 
+                },
+                'error': { 
+                    class: 'status-disconnected', 
+                    text: 'Connection Error', 
+                    icon: '<i class="fas fa-exclamation-triangle"></i>' 
+                }
             };
             
             const config = statusMap[status] || statusMap['error'];
-            statusElement.className = `px-3 py-1 rounded-full text-sm text-white ${config.class}`;
-            statusElement.innerHTML = `<i class="${config.icon} mr-1"></i>${config.text}`;
+            statusElement.className = `status-badge ${config.class}`;
+            statusElement.innerHTML = `${config.icon} ${config.text}`;
         }
 
         function updatePriceDisplay(candle) {
@@ -1173,7 +1817,7 @@
             const change = lastPrice > 0 ? ((candle.close - lastPrice) / lastPrice * 100) : 0;
             
             priceElement.textContent = `$${candle.close.toFixed(2)}`;
-            priceElement.className = candle.close >= candle.open ? 'text-green-400 font-mono' : 'text-red-400 font-mono';
+            priceElement.className = candle.close >= candle.open ? 'text-green-400 font-mono font-semibold' : 'text-red-400 font-mono font-semibold';
             
             lastPrice = candle.close;
             
@@ -1233,37 +1877,52 @@
         function updateLastUpdate() {
             const now = new Date();
             document.getElementById('lastUpdate').innerHTML = 
-                `<i class="fas fa-clock mr-1"></i>Updated: ${now.toLocaleTimeString()}`;
+                `<i class="fas fa-sync-alt mr-1"></i>Updated: ${now.toLocaleTimeString()}`;
         }
 
         function addAlert(message, type) {
             const alertDiv = document.createElement('div');
-            alertDiv.className = `alert ${type} p-3 rounded`;
+            alertDiv.className = `alert ${type} transform transition-all duration-300 hover:scale-105`;
             
             const now = new Date();
-            const typeIcon = type === 'buy' ? 'fas fa-arrow-up' : 
-                           type === 'sell' ? 'fas fa-arrow-down' : 
-                           'fas fa-info-circle';
+            const typeIcon = type === 'buy' ? 'fas fa-arrow-up text-green-400' : 
+                           type === 'sell' ? 'fas fa-arrow-down text-red-400' : 
+                           'fas fa-info-circle text-blue-400';
             
             alertDiv.innerHTML = `
-                <div class="font-medium">
-                    <i class="${typeIcon} mr-2"></i>${type.toUpperCase()}: ${message}
+                <div class="font-semibold flex items-center mb-1">
+                    <i class="${typeIcon} mr-2"></i>
+                    <span class="capitalize">${type}</span>
                 </div>
-                <div class="text-xs text-gray-400 mt-1">
+                <div class="text-sm text-gray-200 mb-2">${message}</div>
+                <div class="text-xs text-gray-400 flex items-center">
                     <i class="fas fa-clock mr-1"></i>${now.toLocaleTimeString()}
                 </div>
             `;
             
             const alertsContainer = document.getElementById('signals');
-            if (alertsContainer.children[0]?.tagName === 'P') {
-                alertsContainer.innerHTML = '';
+            
+            // Remove placeholder if it exists
+            const placeholder = alertsContainer.querySelector('.text-center');
+            if (placeholder) {
+                placeholder.remove();
             }
+            
             alertsContainer.insertBefore(alertDiv, alertsContainer.firstChild);
             
             // Keep only last 5 alerts
             while (alertsContainer.children.length > 5) {
                 alertsContainer.removeChild(alertsContainer.lastChild);
             }
+            
+            // Add entrance animation
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                alertDiv.style.opacity = '1';
+                alertDiv.style.transform = 'translateY(0)';
+            }, 100);
         }
 
         // Initialize the application when the page loads
